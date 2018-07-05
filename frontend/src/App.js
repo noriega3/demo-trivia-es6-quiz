@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 import _ from 'lodash'
-import logo from './logo.svg';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import './App.css';
+import QuizContainer from './containers/QuizContainer'
 import QuizQuestion from './containers/QuizQuestion'
+import QuizScore from './containers/QuizScore'
+
 const categories = ['topic', 'const/let']
 const questionBank = [
   {
@@ -22,7 +25,8 @@ const questionBank = [
     "category": 2,
     "answerOptions": {
       "type": "choice",
-      "choices": [3,4,5,6], //reference answer ids
+      "userChoiceMax": 2,
+      "choices": ["answer1","answer2","answer3","answer4"], //reference answer ids
     },
     "answer": [2]
   },
@@ -32,7 +36,7 @@ const questionBank = [
     "category": 2,
     "answerOptions": {
       "type": "boolean",
-      "choices": [1,2], //reference answer ids
+      "choices": ["true","false"], //reference answer ids
     },
     "answer": [1]
   }
@@ -43,50 +47,19 @@ const answerBank = [
 /**
  * Assumptions:
  * User has selected a topic of let/const
- * Max is a static 3 questions
+ * Constant of 3 questions
  * Questions received can be of any order but are shuffled upon loading
  *
  * Constraints:
  * Must answer each question before proceeding
  */
 class App extends Component {
-  constructor(props){
-    super(props)
-    this.state = {
-      questions: questionBank,
-      onQuestion: 0
-    }
-  }
-  componentDidMount(){
-    this.onNewQuiz()
-  }
-
-  onNewQuiz(){
-    let questions = _.sampleSize(questionBank, 3)
-    this.setState({
-      questions: _.shuffle(questions),
-      onQuestion: 1,
-    })
-  }
-
-  handleAnsweredQuestion(){
-
-  }
-
   render() {
-    const {questions, onQuestion} = this.state
-    return (
-      <div className="quiz">
-        <header className="quiz-header">
-        </header>
-        <div className="quiz-container">
-          <QuizQuestion
-            data={questions[onQuestion]}
-            onAnswered={(e) => this.handleAnsweredQuestion(e)} />
-        </div>
-      </div>
-    );
+    return (<React.Fragment>
+      <CssBaseline/>
+      <QuizContainer />
+    </React.Fragment>);
   }
 }
 
-export default App;
+export default App
