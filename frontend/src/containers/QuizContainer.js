@@ -1,46 +1,14 @@
+import PropTypes from 'prop-types'
 import React, { Component } from 'react';
 import _ from 'lodash'
+
 import QuizQuestion from './QuizQuestion'
 import QuizScore from './QuizScore'
 
-const categories = ['topic', 'const/let']
-const questionBank = [
-  {
-    "question": "Something",
-    "difficulty": 3,
-    "category": 2,
-    "answerOptions": {
-      "type": "input",
-      "strict": true,
-      "trim": true
-    },
-    "answer": [3]
-  },
-  {
-    "question": "another",
-    "difficulty": 5,
-    "category": 2,
-    "answerOptions": {
-      "type": "choice",
-      "userChoiceMax": 2,
-      "choices": ["answer1","answer2","answer3","answer4"], //reference answer ids
-    },
-    "answer": [2]
-  },
-  {
-    "question": "triple",
-    "difficulty": 3,
-    "category": 2,
-    "answerOptions": {
-      "type": "boolean",
-      "choices": ["true","false"], //reference answer ids
-    },
-    "answer": [1]
-  }
-]
-const answerBank = [
-  "true", "false", "something", "something2", "something3", "something4"
-]
+import {
+  getQuestionListIds
+} from '../actions/api'
+
 /**
  * Assumptions:
  * User has selected a topic of let/const
@@ -50,28 +18,27 @@ const answerBank = [
  * Constraints:
  * Must answer each question before proceeding
  */
-class App extends Component {
+class QuizContainer extends Component {
   constructor(props){
     super(props)
     this.state = {
-      questions: questionBank,
+      questionsArr: [],
       questionNumber: 1,
       questionIndex: 0,
-      userAnswers: [],
+      userAnswersArr: [],
       showScore: false
     }
-
     this.onNewQuiz = this.onNewQuiz.bind(this)
   }
   componentDidMount(){
-    this.onNewQuiz()
+    getQuestionListIds({options: {category: 'const/let', shuffle: true, size: 3}}, this.onNewQuiz)
   }
 
-  onNewQuiz(){
-    let questions = _.sampleSize(questionBank, 3)
+  onNewQuiz(questionsArr = []){
+    //if(!questionsArr) return false //TODO: better validatio
     this.setState({
-      questions: _.shuffle(questions),
-      userAnswers: [],
+      questionsArr,
+      userAnswersArr: [],
       questionIndex: 0,
       questionNumber: 1,
       showScore: false
@@ -79,42 +46,46 @@ class App extends Component {
   }
 
   handleAnsweredQuestion(answer){
-    console.log('answered question', answer)
-    let userAnswers = _.clone(this.state.userAnswers)
+    let userAnswersArr = _.clone(this.state.userAnswersArr)
     let questionIndex = this.state.questionIndex+1
     let questionNumber = questionIndex+1
-    let showScore = _.isEqual(questionIndex, _.size(this.state.questions))
+    let showScore = _.isEqual(questionIndex, _.size(this.state.questionsArr))
 
-    userAnswers.push(answer)
+    userAnswersArr.push(answer)
 
     this.setState({
-      userAnswers,
+      userAnswersArr,
       questionNumber,
       questionIndex,
       showScore
     })
   }
   renderQuestion(){
-    const {showScore, questions, questionIndex, questionNumber} = this.state
+    const {showScore, questionsArr, questionIndex, questionNumber} = this.state
     if(showScore) return null
+    if(_.get(questionsArr, questionIndex, -1) < 0) return <div>Could not find question with id of {questionIndex}</div> //TODO: use react router to redirect to 404 / error page
 
     return <QuizQuestion
-      {...questions[questionIndex]}
+      questionId={questionsArr[questionIndex]}
       questionNumber={questionNumber}
       onSubmit={(e) => this.handleAnsweredQuestion(e)}
     />
   }
 
   renderScore(){
-    const {showScore} = this.state
+    const {showScore, questionsArr, userAnswersArr} = this.state
     if(!showScore) return null
 
     return <QuizScore
-      onRestart={this.onNewQuiz}
+      questionIdsArr={questionsArr}
+      userAnswersArr={userAnswersArr}
+      onRestart={(e) => {getQuestionListIds({options: {category: 'const/let', shuffle: true, size: 3}}, this.onNewQuiz)}}
     />
   }
 
   render() {
+    const {questionsArr} = this.state
+    if(_.isEmpty(questionsArr)) return (<div>Retrieving questions..</div>)
     return (
       <div className="quiz">
         <div className="quiz-container">
@@ -126,4 +97,7 @@ class App extends Component {
   }
 }
 
-export default App
+QuizContainer.propTypes = {
+
+}
+export default QuizContainer

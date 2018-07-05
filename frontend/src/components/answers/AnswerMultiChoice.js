@@ -32,11 +32,9 @@ class AnswerMultiChoice extends Component {
       this.state[choice] = false
     })
 
-    console.log('state is ', this.state)
   }
 
   handleChange(e){
-    console.log('on input change', e.currentTarget.value, e.currentTarget.checked)
 
     this.setState({[e.currentTarget.value]: e.currentTarget.checked})
   }
@@ -48,10 +46,21 @@ class AnswerMultiChoice extends Component {
     value = _.keys(value)
     this.props.onSubmit(value)
   }
+
+  checkDisabled(){
+    const {userChoiceMin} = this.props
+    return _.isEmpty(this.state) || _.lt(_.get(_.countBy(this.state), true, 0), userChoiceMin);
+  }
+
   render() {
-    const {classes, choices} = this.props
-    console.log('props', this.props)
+    const {classes, choices, userChoiceMin} = this.props
     return (<div>
+      <div>Choose at least {userChoiceMin}</div>
+      <FormControl
+        className={classes.answerContainer}
+        autoComplete={'off'}
+        required
+        onSubmit={(e)=>this.handleUserSubmit(e)}>
       <FormControl component={"fieldset"} required className={classes.formControl} >
         <FormGroup>
           {_.map(choices, (choice, i) =>
@@ -71,13 +80,14 @@ class AnswerMultiChoice extends Component {
         </FormGroup>
       </FormControl>
       <div>
-        <Button color="primary" onClick={(e) => this.handleSubmit(e)}>Submit</Button>
+        <Button color="primary" onClick={(e) => this.handleSubmit(e)} disabled={this.checkDisabled()}>Submit</Button>
       </div>
+      </FormControl>
     </div>);
   }
 }
 AnswerMultiChoice.defaultProps = {
-  userChoiceMax: 1,
+  userChoiceMin: 2,
   choices: [],
   onChange: () => {},
   onSubmit: () => {}
@@ -85,7 +95,7 @@ AnswerMultiChoice.defaultProps = {
 AnswerMultiChoice.propTypes = {
   lines: PropTypes.number,
   choices: PropTypes.array,
-  userChoiceMax: PropTypes.number,
+  userChoiceMin: PropTypes.number,
   onChange: PropTypes.func,
   onSubmit: PropTypes.func
 }

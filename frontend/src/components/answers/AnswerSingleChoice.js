@@ -30,7 +30,6 @@ class AnswerSingleChoice extends Component {
   }
 
   handleChange(e){
-    console.log('on input change', e.currentTarget.value)
     this.setState({value: e.currentTarget.value})
   }
 
@@ -38,11 +37,21 @@ class AnswerSingleChoice extends Component {
     e.preventDefault()
     this.props.onSubmit(this.state.value)
   }
+
+  checkDisabled(){
+    return _.isEmpty(_.trim(this.state.value))
+  }
+
   render() {
     const {classes, choices} = this.props
     const {value} = this.state
 
     return (<div>
+      <FormControl
+        className={classes.answerContainer}
+        autoComplete={'off'}
+        required
+        onSubmit={(e)=>this.handleUserSubmit(e)}>
       <FormControl component={"fieldset"} required className={classes.formControl} >
         <RadioGroup
           name="answer"
@@ -53,8 +62,9 @@ class AnswerSingleChoice extends Component {
         </RadioGroup>
       </FormControl>
       <div>
-        <Button color="primary" onClick={(e) => this.handleSubmit(e)} disabled={!value}>Submit</Button>
+        <Button color="primary" onClick={(e) => this.handleSubmit(e)} disabled={this.checkDisabled()}>Submit</Button>
       </div>
+      </FormControl>
     </div>);
   }
 }

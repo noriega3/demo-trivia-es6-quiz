@@ -5,10 +5,14 @@ import _ from 'lodash'
 import AnswerSingleChoice from '../components/answers/AnswerSingleChoice'
 import AnswerMultiChoice from '../components/answers/AnswerMultiChoice'
 import AnswerInput from '../components/answers/AnswerInput'
+import QuestionDisplay from '../components/QuestionDisplay'
 
 import { withStyles } from '@material-ui/core/styles';
-import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
+
+import {
+  getQuestionById
+} from '../actions/api'
 
 const styles = theme => ({
   answerContainer: {
@@ -17,21 +21,39 @@ const styles = theme => ({
   }
 });
 
+
 class QuizQuestion extends Component {
   constructor(props){
     super(props)
-    this.state = {}
+    this.state = {
+      question: undefined
+    }
+
+    this.onReceivedQuestion = this.onReceivedQuestion.bind(this)
   }
-  /*  handleUserSubmit(ev){
+
+  handleUserSubmit(ev){
     ev.preventDefault()
-    console.log('handle answer submit', this.state.userAnswer)
     this.props.onSubmit(this.state.userAnswer)
-  }*/
+  }
+
+  componentDidMount(){
+    const {questionId} = this.props
+    getQuestionById({body: questionId}, this.onReceivedQuestion)
+  }
+
+  componentDidUpdate(prevProps){
+    if(!_.isEqual(prevProps.questionId, this.props.questionId))
+      getQuestionById({body: this.props.questionId}, this.onReceivedQuestion)
+  }
+  onReceivedQuestion(response){
+    this.setState({...response})
+  }
 
   renderUserAnswerInput(){
-    const {answerOptions} = this.props
+    const {answerOptions} = this.state
     let renderType  = _.get(answerOptions, 'type')
-    const choiceMax = _.get(answerOptions, 'userChoiceMax', 1)
+    const choiceMin = _.get(answerOptions, 'userChoiceMin', 1)
 
     switch(renderType){
       case 'input':
@@ -41,7 +63,7 @@ class QuizQuestion extends Component {
       case 'boolean':
       case 'multiple':
       case 'choice':
-        if(choiceMax > 1)
+        if(choiceMin > 1)
           return <AnswerMultiChoice {...answerOptions}
             onSubmit={(e) => this.props.onSubmit(e) } />
         else
@@ -53,18 +75,14 @@ class QuizQuestion extends Component {
 
 
   render() {
-    const {questionNumber, classes, question} = this.props
-    console.log('props', this.props)
+    const {questionNumber, classes} = this.props
+    const {question} = this.state
+    if(!question) return (<div>Retrieving question from server..</div>)
+
     return (
-      <div className="question">
-          <div>Question {questionNumber}. {question}</div>
-          <FormControl
-            className={classes.answerContainer}
-            autoComplete={'off'}
-            required
-            onSubmit={(e)=>this.handleUserSubmit(e)}>
-            {this.renderUserAnswerInput()}
-          </FormControl>
+      <div className={`question-${questionNumber}`}>
+        <QuestionDisplay questionNumber={questionNumber} question={question} />
+        {this.renderUserAnswerInput()}
       </div>
     );
   }
@@ -72,7 +90,7 @@ class QuizQuestion extends Component {
 
 QuizQuestion.propTypes = {
   questionNumber: PropTypes.number.isRequired,
-  question: PropTypes.string.isRequired,
+  questionId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   onSubmit: PropTypes.func.isRequired
 }
 export default withStyles(styles)(QuizQuestion);
