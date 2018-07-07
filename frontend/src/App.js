@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import _ from 'lodash'
-import CssBaseline from '@material-ui/core/CssBaseline';
-import QuizContainer from './containers/QuizContainer'
-import QuizQuestion from './containers/QuizQuestion'
-import QuizScore from './containers/QuizScore'
 
+import CssBaseline from '@material-ui/core/CssBaseline';
+
+import QuizContainer from './containers/QuizContainer';
+import AppBarDisplay from './components/AppBarDisplay';
 
 /**
  * Assumptions:
@@ -17,12 +16,14 @@ import QuizScore from './containers/QuizScore'
  */
 class App extends Component {
   render() {
+    //rely on fragment to not generate another <div />
     return (
       <React.Fragment>
         <CssBaseline/>
+        <AppBarDisplay />
         <QuizContainer />
       </React.Fragment>);
-  }
+  };
 }
 
-export default App
+export default App;
